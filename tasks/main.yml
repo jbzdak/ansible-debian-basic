@@ -1,0 +1,38 @@
+---
+- name: create provision user
+# Provision user is NOT in sudo group we will add his priveleges via
+# sudoers file
+  user: name={{provision_user}} shell=/bin/bash system=yes
+        password={{basic_setup.provision_user_password}} groups=
+- name: create .ssh
+  file: path=/home/{{provision_user}}/.ssh owner={{provision_user}}
+        group={{provision_user}} mode=700 state=directory
+- name: update authorized keys
+  assemble: src=files/admin_keys
+            dest=/home/{{provision_user}}/.ssh/authorized_keys
+            remote_src=false owner={{provision_user}}
+            group={{provision_user}} mode=600
+- name: update-hosts
+  template: src=hosts dest=/etc/hosts mode=644
+- name: update-hostname
+  template: src=hostname dest=/etc/hostname mode=644
+- name: update sources apt
+  template: src=sources.list dest=/etc/apt/sources.list
+- name: update apt
+  apt: update_cache=yes upgrade=safe
+- name: Create deny-ssh-group
+  group: name=deny-ssh system=yes state=present
+- name: update sshd server
+  copy: src=sshd_config dest=/etc/ssh/sshd_config
+  notify: restart sshd
+- name: update sudoers
+  template: src=sudoers.txt dest=/etc/sudoers validate='visudo -cf %s'
+- name: install ufw
+  apt: name=ufw state=present
+- name: Reset the firewall (purges any additional rules)
+  ufw: state=reset
+- name: Insert ufw rules
+  ufw: rule={{item.rule}} proto={{item.proto}} port={{item.port}}
+  with_items: "{{ufw.basic_ports}}"
+- name: Enable policy
+  ufw: policy={{ufw.default_policy}} state=enabled logging=on

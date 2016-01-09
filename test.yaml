@@ -1,0 +1,15 @@
+
+---
+- hosts: all
+  become: true
+  roles:
+    - basic-setup
+  vars_files:
+    - 'defaults/main.yml'
+    - 'vars/main.yml'
+#  tasks:
+#    - include: tasks/main.yml
+#      vars:
+#        provision_user: p1
+#        basic_setup:
+#          provision_user_password: !

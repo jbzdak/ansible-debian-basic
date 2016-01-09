@@ -1,0 +1,19 @@
+---
+deb_proxy: http://ftp.pl.debian.org/debian/
+provision_user: provision
+basic_setup:
+  # If set to magic value "!" it means that provision user does not use password
+  # else it needs to be set to a
+  provision_user_password: "!"
+ufw:
+  default_policy: deny
+  basic_ports:
+    - proto: tcp
+      port: 22
+      rule: allow
+    - proto: tcp
+      port: 80
+      rule: allow
+    - proto: tcp
+      port: 443
+      rule: allow
